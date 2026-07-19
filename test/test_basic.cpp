@@ -11,8 +11,6 @@
  *       -L<lexbor_static_lib_path> -llexbor_static \
  *       -o test_basic && ./test_basic
  *
- * Or via CMake with a host-side test target (not included in release build).
- *
  * Expected output:
  *   [PASS] parse
  *   [PASS] queryFirst: div

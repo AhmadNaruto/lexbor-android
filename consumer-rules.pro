@@ -7,6 +7,6 @@
 }
 
 # Explicitly keep our wrapper classes and their members so JNI_OnLoad caching works
--keep class com.example.lexbor.HtmlDocument { *; }
--keep class com.example.lexbor.NodeList { *; }
--keep class com.example.lexbor.Node { *; }
+-keep class io.github.lexbor_jni.HtmlDocument { *; }
+-keep class io.github.lexbor_jni.NodeList { *; }
+-keep class io.github.lexbor_jni.Node { *; }

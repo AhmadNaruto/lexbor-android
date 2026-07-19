@@ -14,7 +14,7 @@
  *   After HtmlDocument.close(), all Node objects from that document are invalid.
  */
 
-package com.example.lexbor
+package io.github.lexbor_jni
 
 /**
  * A single DOM element returned from a CSS selector query.

@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.lexbor"
+    namespace = "io.github.lexbor_jni"
     compileSdk = 34 // Adjust based on your target SDK
 
     defaultConfig {

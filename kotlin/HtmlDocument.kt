@@ -18,7 +18,7 @@
  * Node and NodeList use the same library — it is loaded only once by the JVM.
  */
 
-package com.example.lexbor
+package io.github.lexbor_jni
 
 /**
  * A parsed HTML document. Implements [AutoCloseable] for use with `use {}`.

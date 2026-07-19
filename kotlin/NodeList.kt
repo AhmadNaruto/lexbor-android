@@ -11,7 +11,7 @@
  *     themselves are owned by the document and are NOT freed here.
  */
 
-package com.example.lexbor
+package io.github.lexbor_jni
 
 /**
  * An ordered collection of [Node] elements from a CSS selector query.

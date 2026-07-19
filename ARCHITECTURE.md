@@ -134,10 +134,22 @@ Penerapan optimasi di `CMakeLists.txt` untuk release target `arm64-v8a`:
 
 ## 7. Android Kotlin AutoCloseable Usage Examples
 
+Set LEXBOR_ROOT in CMakeLists.txt:
+```cmake
+set(LEXBOR_ROOT "/path/to/lexbor" CACHE PATH "Lexbor source")
+```
+
+Change package name in jni.cpp:
+```c
+#define JNI_CLASS_DOCUMENT  "io/github/lexbor_jni/HtmlDocument"
+#define JNI_CLASS_NODELIST  "io/github/lexbor_jni/NodeList"
+#define JNI_CLASS_NODE      "io/github/lexbor_jni/Node"
+```
+
 Gunakan blok `.use {}` di Kotlin untuk menjamin pembebasan memori native yang andal dan aman:
 
 ```kotlin
-import com.example.lexbor.HtmlDocument
+import io.github.lexbor_jni.HtmlDocument
 
 // Contoh 1: Scraping satu nilai (single value) dengan penanganan memori instan
 fun scrapePrice(html: String): String? {

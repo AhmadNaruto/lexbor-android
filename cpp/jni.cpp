@@ -3,12 +3,15 @@
  *
  * All JNI entry points for the lexbor-jni library.
  *
- * Performance & Stability Optimization Checklist:
- * 1. Exception Safety: Wrap all C++ calls in try-catch blocks and propagate
- *    exceptions (like std::bad_alloc) back to JVM as RuntimeExceptions.
- * 2. Defensively release String resources on early exit to avoid leaks.
- * 3. Cache Class/Method IDs safely on JNI_OnLoad.
- * 4. Optimizations specifically designed to run on resource-constrained Android ARM64 devices.
+ * Package: io.github.lexbor_jni
+ * Class mappings:
+ *   - JNI_CLASS_DOCUMENT  -> "io/github/lexbor_jni/HtmlDocument"
+ *   - JNI_CLASS_NODELIST  -> "io/github/lexbor_jni/NodeList"
+ *   - JNI_CLASS_NODE      -> "io/github/lexbor_jni/Node"
+ *
+ * Note: Under JNI name mangling convention, underscores in package names
+ * (i.e. 'lexbor_jni') are replaced with '_1' in native symbols, yielding
+ * prefix: 'Java_io_github_lexbor_1jni_...'.
  */
 
 #include "document.hpp"
@@ -22,9 +25,9 @@
 #include <new>
 
 // ── Package / class configuration ────────────────────────────────────────────
-#define JNI_CLASS_DOCUMENT  "com/example/lexbor/HtmlDocument"
-#define JNI_CLASS_NODELIST  "com/example/lexbor/NodeList"
-#define JNI_CLASS_NODE      "com/example/lexbor/Node"
+#define JNI_CLASS_DOCUMENT  "io/github/lexbor_jni/HtmlDocument"
+#define JNI_CLASS_NODELIST  "io/github/lexbor_jni/NodeList"
+#define JNI_CLASS_NODE      "io/github/lexbor_jni/Node"
 
 #define LOG_TAG "lexbor-jni"
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
@@ -91,9 +94,9 @@ static inline jlong make_node_list_handle(JNIEnv* env,
 // ── HtmlDocument JNI methods ──────────────────────────────────────────────────
 
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_example_lexbor_HtmlDocument_nativeParse(JNIEnv*  env,
-                                                  jobject  /*thiz*/,
-                                                  jstring  html_str)
+Java_io_github_lexbor_1jni_HtmlDocument_nativeParse(JNIEnv*  env,
+                                                    jobject  /*thiz*/,
+                                                    jstring  html_str)
 {
     if (!html_str) return 0L;
 
@@ -119,9 +122,9 @@ Java_com_example_lexbor_HtmlDocument_nativeParse(JNIEnv*  env,
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_example_lexbor_HtmlDocument_nativeClose(JNIEnv* /*env*/,
-                                                   jobject /*thiz*/,
-                                                   jlong   handle)
+Java_io_github_lexbor_1jni_HtmlDocument_nativeClose(JNIEnv* /*env*/,
+                                                    jobject /*thiz*/,
+                                                    jlong   handle)
 {
     if (handle != 0L) {
         delete fromHandle<DocumentHandle>(handle);
@@ -129,10 +132,10 @@ Java_com_example_lexbor_HtmlDocument_nativeClose(JNIEnv* /*env*/,
 }
 
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_example_lexbor_HtmlDocument_nativeQuery(JNIEnv*  env,
-                                                   jobject  /*thiz*/,
-                                                   jlong    handle,
-                                                   jstring  css_str)
+Java_io_github_lexbor_1jni_HtmlDocument_nativeQuery(JNIEnv*  env,
+                                                    jobject  /*thiz*/,
+                                                    jlong    handle,
+                                                    jstring  css_str)
 {
     auto* doc = fromHandle<DocumentHandle>(handle);
     if (!doc || !css_str) return make_node_list_handle(env, {}, nullptr);
@@ -159,10 +162,10 @@ Java_com_example_lexbor_HtmlDocument_nativeQuery(JNIEnv*  env,
 }
 
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_example_lexbor_HtmlDocument_nativeQueryFirst(JNIEnv*  env,
-                                                        jobject  /*thiz*/,
-                                                        jlong    handle,
-                                                        jstring  css_str)
+Java_io_github_lexbor_1jni_HtmlDocument_nativeQueryFirst(JNIEnv*  env,
+                                                         jobject  /*thiz*/,
+                                                         jlong    handle,
+                                                         jstring  css_str)
 {
     auto* doc = fromHandle<DocumentHandle>(handle);
     if (!doc || !css_str) return 0L;
@@ -199,19 +202,19 @@ Java_com_example_lexbor_HtmlDocument_nativeQueryFirst(JNIEnv*  env,
 // ── NodeList JNI methods ──────────────────────────────────────────────────────
 
 extern "C" JNIEXPORT jint JNICALL
-Java_com_example_lexbor_NodeList_nativeSize(JNIEnv* /*env*/,
-                                             jobject /*thiz*/,
-                                             jlong   handle)
+Java_io_github_lexbor_1jni_NodeList_nativeSize(JNIEnv* /*env*/,
+                                               jobject /*thiz*/,
+                                               jlong   handle)
 {
     auto* list = fromHandle<NodeListHandle>(handle);
     return list ? static_cast<jint>(list->size()) : 0;
 }
 
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_example_lexbor_NodeList_nativeGet(JNIEnv* env,
-                                            jobject /*thiz*/,
-                                            jlong   handle,
-                                            jint    index)
+Java_io_github_lexbor_1jni_NodeList_nativeGet(JNIEnv* env,
+                                              jobject /*thiz*/,
+                                              jlong   handle,
+                                              jint    index)
 {
     auto* list = fromHandle<NodeListHandle>(handle);
     if (!list) return 0L;
@@ -228,9 +231,9 @@ Java_com_example_lexbor_NodeList_nativeGet(JNIEnv* env,
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_example_lexbor_NodeList_nativeDestroy(JNIEnv* /*env*/,
-                                                jobject /*thiz*/,
-                                                jlong   handle)
+Java_io_github_lexbor_1jni_NodeList_nativeDestroy(JNIEnv* /*env*/,
+                                                  jobject /*thiz*/,
+                                                  jlong   handle)
 {
     if (handle != 0L) {
         delete fromHandle<NodeListHandle>(handle);
@@ -240,9 +243,9 @@ Java_com_example_lexbor_NodeList_nativeDestroy(JNIEnv* /*env*/,
 // ── Node JNI methods ──────────────────────────────────────────────────────────
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_lexbor_Node_nativeTagName(JNIEnv* env,
-                                            jobject /*thiz*/,
-                                            jlong   handle)
+Java_io_github_lexbor_1jni_Node_nativeTagName(JNIEnv* env,
+                                              jobject /*thiz*/,
+                                              jlong   handle)
 {
     auto* h = fromHandle<NodeHandle>(handle);
     if (!h) return env->NewStringUTF("");
@@ -257,9 +260,9 @@ Java_com_example_lexbor_Node_nativeTagName(JNIEnv* env,
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_lexbor_Node_nativeText(JNIEnv* env,
-                                         jobject /*thiz*/,
-                                         jlong   handle)
+Java_io_github_lexbor_1jni_Node_nativeText(JNIEnv* env,
+                                           jobject /*thiz*/,
+                                           jlong   handle)
 {
     auto* h = fromHandle<NodeHandle>(handle);
     if (!h) return env->NewStringUTF("");
@@ -274,9 +277,9 @@ Java_com_example_lexbor_Node_nativeText(JNIEnv* env,
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_lexbor_Node_nativeInnerHtml(JNIEnv* env,
-                                              jobject /*thiz*/,
-                                              jlong   handle)
+Java_io_github_lexbor_1jni_Node_nativeInnerHtml(JNIEnv* env,
+                                                jobject /*thiz*/,
+                                                jlong   handle)
 {
     auto* h = fromHandle<NodeHandle>(handle);
     if (!h) return env->NewStringUTF("");
@@ -291,9 +294,9 @@ Java_com_example_lexbor_Node_nativeInnerHtml(JNIEnv* env,
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_lexbor_Node_nativeOuterHtml(JNIEnv* env,
-                                              jobject /*thiz*/,
-                                              jlong   handle)
+Java_io_github_lexbor_1jni_Node_nativeOuterHtml(JNIEnv* env,
+                                                jobject /*thiz*/,
+                                                jlong   handle)
 {
     auto* h = fromHandle<NodeHandle>(handle);
     if (!h) return env->NewStringUTF("");
@@ -308,10 +311,10 @@ Java_com_example_lexbor_Node_nativeOuterHtml(JNIEnv* env,
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_lexbor_Node_nativeAttr(JNIEnv*  env,
-                                         jobject  /*thiz*/,
-                                         jlong    handle,
-                                         jstring  name_str)
+Java_io_github_lexbor_1jni_Node_nativeAttr(JNIEnv*  env,
+                                           jobject  /*thiz*/,
+                                           jlong    handle,
+                                           jstring  name_str)
 {
     auto* h = fromHandle<NodeHandle>(handle);
     if (!h || !name_str) return nullptr;
@@ -337,10 +340,10 @@ Java_com_example_lexbor_Node_nativeAttr(JNIEnv*  env,
 }
 
 extern "C" JNIEXPORT jboolean JNICALL
-Java_com_example_lexbor_Node_nativeHasAttr(JNIEnv*  env,
-                                            jobject  /*thiz*/,
-                                            jlong    handle,
-                                            jstring  name_str)
+Java_io_github_lexbor_1jni_Node_nativeHasAttr(JNIEnv*  env,
+                                              jobject  /*thiz*/,
+                                              jlong    handle,
+                                              jstring  name_str)
 {
     auto* h = fromHandle<NodeHandle>(handle);
     if (!h || !name_str) return JNI_FALSE;
@@ -363,10 +366,10 @@ Java_com_example_lexbor_Node_nativeHasAttr(JNIEnv*  env,
 }
 
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_example_lexbor_Node_nativeQuery(JNIEnv*  env,
-                                          jobject  /*thiz*/,
-                                          jlong    handle,
-                                          jstring  css_str)
+Java_io_github_lexbor_1jni_Node_nativeQuery(JNIEnv*  env,
+                                            jobject  /*thiz*/,
+                                            jlong    handle,
+                                            jstring  css_str)
 {
     auto* h = fromHandle<NodeHandle>(handle);
     if (!h || !css_str) return make_node_list_handle(env, {}, nullptr);
@@ -394,10 +397,10 @@ Java_com_example_lexbor_Node_nativeQuery(JNIEnv*  env,
 }
 
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_example_lexbor_Node_nativeQueryFirst(JNIEnv*  env,
-                                               jobject  /*thiz*/,
-                                               jlong    handle,
-                                               jstring  css_str)
+Java_io_github_lexbor_1jni_Node_nativeQueryFirst(JNIEnv*  env,
+                                                 jobject  /*thiz*/,
+                                                 jlong    handle,
+                                                 jstring  css_str)
 {
     auto* h = fromHandle<NodeHandle>(handle);
     if (!h || !css_str) return 0L;
@@ -433,9 +436,9 @@ Java_com_example_lexbor_Node_nativeQueryFirst(JNIEnv*  env,
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_example_lexbor_Node_nativeDestroy(JNIEnv* /*env*/,
-                                            jobject /*thiz*/,
-                                            jlong   handle)
+Java_io_github_lexbor_1jni_Node_nativeDestroy(JNIEnv* /*env*/,
+                                              jobject /*thiz*/,
+                                              jlong   handle)
 {
     if (handle != 0L) {
         delete fromHandle<NodeHandle>(handle);
