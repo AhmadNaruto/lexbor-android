@@ -1,0 +1,4 @@
+# Force Git to treat shared libraries (*.so) as binary files.
+# This prevents Git from modifying line endings (CRLF/LF conversion)
+# and avoids generating text diffs for binary modifications.
+*.so binary

@@ -1,0 +1,17 @@
+# Avoid tracking temporary host build outputs
+/build_host/
+/.cxx/
+/build/
+.cxx/
+build/
+.gradle/
+captures/
+.externalNativeBuild/
+
+# Avoid tracking IDE configurations
+.idea/
+*.iml
+
+# Allow tracking generated .so shared libraries if you explicitly want to commit prebuilt binaries.
+# If you only want to build from source via CMake on the user's end, you can ignore .so:
+# *.so
