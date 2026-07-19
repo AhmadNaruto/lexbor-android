@@ -37,6 +37,34 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED   ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# ---------------------------------------------------------------------------
+# Optimization override: strip -O3 injected by CMAKE_*_FLAGS_RELEASE so that
+# our -Oz flags in target_compile_options are the sole opt level.
+# (CMake appends CMAKE_C_FLAGS_RELEASE before target_compile_options, so
+#  without this override clang sees "-O3 ... -Oz" and the last one wins —
+#  but making it explicit is cleaner and avoids confusion.)
+# ---------------------------------------------------------------------------
+set(CMAKE_C_FLAGS_RELEASE   "-DNDEBUG" CACHE STRING "" FORCE)
+set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG" CACHE STRING "" FORCE)
+
+# ---------------------------------------------------------------------------
+# ARM64 detection: works regardless of how cmake is invoked
+#   - Android Gradle Plugin / NDK toolchain  → CMAKE_ANDROID_ARCH_ABI
+#   - Plain cross-compiler (aarch64-...-clang) → CMAKE_SYSTEM_PROCESSOR
+#   - ANDROID + ANDROID_ABI variables         → legacy NDK standalone
+# ---------------------------------------------------------------------------
+set(LEXBOR_IS_AARCH64 FALSE)
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
+    set(LEXBOR_IS_AARCH64 TRUE)
+elseif(CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
+    set(LEXBOR_IS_AARCH64 TRUE)
+elseif(ANDROID AND ANDROID_ABI STREQUAL "arm64-v8a")
+    set(LEXBOR_IS_AARCH64 TRUE)
+elseif(CMAKE_C_COMPILER_TARGET MATCHES "aarch64")
+    set(LEXBOR_IS_AARCH64 TRUE)
+endif()
+message(STATUS "lexbor-jni: LEXBOR_IS_AARCH64 = ${LEXBOR_IS_AARCH64}  (processor=${CMAKE_SYSTEM_PROCESSOR}, target=${CMAKE_C_COMPILER_TARGET})")
+
 # Path to the Lexbor source tree.
 # We use the internal git submodule folder so that the project compiles out-of-the-box.
 set(LEXBOR_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/lexbor"
@@ -398,7 +426,7 @@ target_include_directories(lexbor_static PUBLIC
 
 # Compiler flags for Lexbor C code
 target_compile_options(lexbor_static PRIVATE
-    -Oz                     # Optimize aggressively for size (highly beneficial for ARM instruction cache)
+    -Oz                     # Optimize for size (overrides -O3 stripped from CMAKE_C_FLAGS_RELEASE)
     -fvisibility=hidden     # don't export internal symbols
     -ffunction-sections     # enable --gc-sections to strip unused functions
     -fdata-sections
@@ -407,9 +435,12 @@ target_compile_options(lexbor_static PRIVATE
     -Wno-unused-function    # Lexbor has many inline helpers not all used
 )
 
-# Target-specific tuning for ARM64 when compiling for Android
-if(ANDROID AND ANDROID_ABI STREQUAL "arm64-v8a")
+# ARM64-specific tuning — detected via LEXBOR_IS_AARCH64 set above.
+# -march=armv8-a  : emit AArch64 ISA instructions (vs generic baseline)
+# -mtune=generic  : tune for representative ARM64 core (avoids over-specializing)
+if(LEXBOR_IS_AARCH64)
     target_compile_options(lexbor_static PRIVATE -march=armv8-a -mtune=generic)
+    message(STATUS "lexbor_static: applying -march=armv8-a -mtune=generic")
 endif()
 
 target_compile_definitions(lexbor_static PRIVATE
@@ -431,7 +462,7 @@ target_include_directories(lexbor_jni PRIVATE
 )
 
 target_compile_options(lexbor_jni PRIVATE
-    -Oz                     # Minimize code footprint
+    -Oz                     # Minimize code footprint (sole opt level — -O3 stripped above)
     -fvisibility=hidden
     -ffunction-sections
     -fdata-sections
@@ -439,8 +470,9 @@ target_compile_options(lexbor_jni PRIVATE
     -std=c++17
 )
 
-if(ANDROID AND ANDROID_ABI STREQUAL "arm64-v8a")
+if(LEXBOR_IS_AARCH64)
     target_compile_options(lexbor_jni PRIVATE -march=armv8-a -mtune=generic)
+    message(STATUS "lexbor_jni: applying -march=armv8-a -mtune=generic")
 endif()
 
 # Link order: our JNI code → static lexbor → Android system libs
