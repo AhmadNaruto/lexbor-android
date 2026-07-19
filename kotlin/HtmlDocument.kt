@@ -32,7 +32,7 @@ package io.github.lexbor_jni
  *     val title = doc.queryFirst("title")?.text ?: ""
  *     val links = doc.query("a[href]")
  *     // use links...
- *     links.destroy()
+ *     links.close()
  * }
  * ```
  */
@@ -72,7 +72,7 @@ class HtmlDocument private constructor(private val nativeHandle: Long) : AutoClo
      * Returns a [NodeList] of all elements matching [css].
      * Returns an empty [NodeList] if nothing matches.
      *
-     * The returned [NodeList] owns a native allocation — call [NodeList.destroy]
+     * The returned [NodeList] owns a native allocation — call [NodeList.close]
      * when done, or iterate and discard.
      */
     fun query(css: String): NodeList {
@@ -85,7 +85,7 @@ class HtmlDocument private constructor(private val nativeHandle: Long) : AutoClo
      *
      * More efficient than `query(css)[0]` — stops searching after the first match.
      *
-     * The returned [Node] owns a small native allocation — call [Node.destroy] when done.
+     * The returned [Node] owns a small native allocation — call [Node.close] when done.
      */
     fun queryFirst(css: String): Node? {
         checkOpen()
