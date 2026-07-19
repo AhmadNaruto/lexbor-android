@@ -10,7 +10,7 @@ extensions.configure<LibraryExtension> {
     ndkVersion = "29.0.14206865"
 
     defaultConfig {
-        minSdk = 30
+        minSdk = 26
         consumerProguardFiles("consumer-rules.pro")
 
         externalNativeBuild {
