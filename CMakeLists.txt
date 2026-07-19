@@ -37,9 +37,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED   ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Path to the Lexbor source tree (adjust if your project layout differs).
-# Expected layout:  <LEXBOR_ROOT>/source/lexbor/<module>/
-set(LEXBOR_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../lexbor"
+# Path to the Lexbor source tree.
+# We use the internal git submodule folder so that the project compiles out-of-the-box.
+set(LEXBOR_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/lexbor"
     CACHE PATH "Root of the Lexbor source tree")
 
 set(LEXBOR_SRC "${LEXBOR_ROOT}/source/lexbor")
