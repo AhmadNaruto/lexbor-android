@@ -1,14 +1,17 @@
 plugins {
-    alias(libs.plugins.noveldokusha.android.library.nohilt)
+    alias(libs.plugins.android.library)
+    id("org.jetbrains.kotlin.android") version "2.4.10"
 }
 
 import com.android.build.api.dsl.LibraryExtension
 
 extensions.configure<LibraryExtension> {
     namespace = "io.github.lexbor_jni"
+    compileSdk = 34
     ndkVersion = "29.0.14206865"
 
     defaultConfig {
+        minSdk = 21
         consumerProguardFiles("consumer-rules.pro")
 
         externalNativeBuild {
@@ -33,11 +36,16 @@ extensions.configure<LibraryExtension> {
             version = "3.22.1" // Adjust to the CMake version installed in your SDK Manager
         }
     }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
 }
 
 kotlin {
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
     }
 }
 
