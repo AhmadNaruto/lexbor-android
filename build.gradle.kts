@@ -13,7 +13,7 @@ android {
             cmake {
                 // Pass the path to your Lexbor source tree.
                 // By default, it expects the lexbor folder to be sibling to lexbor-jni.
-                arguments("-DLEXBOR_ROOT=${project.rootDir}/../lexbor")
+                arguments("-DLEXBOR_ROOT=${projectDir}/lexbor")
                 
                 // Targets arm64-v8a specifically as requested.
                 // You can add others (like "armeabi-v7a", "x86_64" for emulator) if needed.
