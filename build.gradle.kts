@@ -1,17 +1,16 @@
 plugins {
     alias(libs.plugins.android.library)
-    id("org.jetbrains.kotlin.android") version "2.4.10"
 }
 
 import com.android.build.api.dsl.LibraryExtension
 
 extensions.configure<LibraryExtension> {
     namespace = "io.github.lexbor_jni"
-    compileSdk = 34
+    compileSdk = 37
     ndkVersion = "29.0.14206865"
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 30
         consumerProguardFiles("consumer-rules.pro")
 
         externalNativeBuild {
@@ -38,18 +37,16 @@ extensions.configure<LibraryExtension> {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 }
 
 kotlin {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
-    }
+    jvmToolchain(21)
 }
 
 dependencies {
-    implementation(libs.kotlin.stdlib)
+    // stdlib dependency is added automatically by KGP
 }
 
