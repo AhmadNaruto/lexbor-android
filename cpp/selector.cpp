@@ -75,11 +75,20 @@ std::string node_text_content(lxb_dom_node_t* node) {
 // ── Serialization callback ───────────────────────────────────────────────────
 
 // Appends serialized chunks directly into a std::string.
-// No intermediate buffer — data flows straight from Lexbor to the string.
+// IMPORTANT: must not throw — this is a C callback called from Lexbor's C
+// serialize functions. An uncaught C++ exception through C frames is UB.
+// On std::bad_alloc (OOM) we return LXB_STATUS_ERROR_MEMORY_ALLOCATION so
+// Lexbor propagates the error back through its own status chain.
 static lxb_status_t str_append_cb(const lxb_char_t* data, size_t len, void* ctx) {
-    static_cast<std::string*>(ctx)->append(
-        reinterpret_cast<const char*>(data), len);
-    return LXB_STATUS_OK;
+    try {
+        static_cast<std::string*>(ctx)->append(
+            reinterpret_cast<const char*>(data), len);
+        return LXB_STATUS_OK;
+    } catch (const std::bad_alloc&) {
+        return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
+    } catch (...) {
+        return LXB_STATUS_ERROR;
+    }
 }
 
 // ── Inner HTML ───────────────────────────────────────────────────────────────

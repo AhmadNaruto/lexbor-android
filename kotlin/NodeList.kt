@@ -77,22 +77,43 @@ class NodeList internal constructor(private var nativeHandle: Long) : Iterable<N
      * Returns an iterator over all [Node] elements.
      *
      * Each [Node] from the iterator owns a native handle; call [Node.close]
-     * when done with each node.
+     * when done with each node, or use [forEachNode] to have it managed
+     * automatically.
+     *
+     * Size is snapshot at iterator creation — mutation of the underlying
+     * document during iteration is not supported.
      */
     override fun iterator(): Iterator<Node> {
         checkOpen()
+        // Snapshot size and handle once: avoids a JNI round-trip on every
+        // hasNext() call and guards against close() racing with iteration.
+        val snapshotSize   = nativeSize(nativeHandle)
+        val snapshotHandle = nativeHandle
         return object : Iterator<Node> {
             private var index = 0
             override fun hasNext(): Boolean {
                 if (closed) return false
-                return index < size
+                return index < snapshotSize
             }
             override fun next(): Node {
                 checkOpen()
                 if (!hasNext()) throw NoSuchElementException()
-                return get(index++)
+                val nodeHandle = nativeGet(snapshotHandle, index++)
+                check(nodeHandle != 0L) { "lexbor-jni: null node at index ${index - 1}" }
+                return Node(nodeHandle)
             }
         }
+    }
+
+    /**
+     * Iterates over all nodes, calling [action] on each, and automatically
+     * closing each [Node] when the action completes. Equivalent to:
+     * ```kotlin
+     * for (node in list) { node.use { action(it) } }
+     * ```
+     */
+    inline fun forEachNode(action: (Node) -> Unit) {
+        for (node in this) node.use { action(it) }
     }
 
     /**

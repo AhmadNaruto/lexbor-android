@@ -1,5 +1,6 @@
 # Avoid tracking temporary host build outputs
 /build_host/
+/build_out/
 /.cxx/
 /build/
 .cxx/
