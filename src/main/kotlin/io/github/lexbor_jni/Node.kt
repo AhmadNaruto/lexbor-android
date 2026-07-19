@@ -154,6 +154,28 @@ class Node internal constructor(private var nativeHandle: Long) : AutoCloseable 
         close()
     }
 
+    /** Returns the next sibling node, or null if none. */
+    val nextSibling: Node?
+        get() {
+            checkOpen()
+            val nextHandle = nativeNextSibling(nativeHandle)
+            return if (nextHandle != 0L) Node(nextHandle) else null
+        }
+
+    /** Returns the parent node, or null if none. */
+    val parent: Node?
+        get() {
+            checkOpen()
+            val parentHandle = nativeParent(nativeHandle)
+            return if (parentHandle != 0L) Node(parentHandle) else null
+        }
+
+    /** Removes this node from its parent DOM tree. */
+    fun remove() {
+        checkOpen()
+        nativeRemove(nativeHandle)
+    }
+
     private external fun nativeTagName(handle: Long): String
     private external fun nativeText(handle: Long): String
     private external fun nativeInnerHtml(handle: Long): String
@@ -162,5 +184,8 @@ class Node internal constructor(private var nativeHandle: Long) : AutoCloseable 
     private external fun nativeHasAttr(handle: Long, name: String): Boolean
     private external fun nativeQuery(handle: Long, css: String): Long
     private external fun nativeQueryFirst(handle: Long, css: String): Long
+    private external fun nativeNextSibling(handle: Long): Long
+    private external fun nativeParent(handle: Long): Long
+    private external fun nativeRemove(handle: Long): Unit
     private external fun nativeDestroy(handle: Long)
 }

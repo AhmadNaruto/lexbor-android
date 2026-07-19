@@ -435,6 +435,49 @@ Java_io_github_lexbor_1jni_Node_nativeQueryFirst(JNIEnv*  env,
     }
 }
 
+extern "C" JNIEXPORT jlong JNICALL
+Java_io_github_lexbor_1jni_Node_nativeNextSibling(JNIEnv* /*env*/,
+                                                  jobject /*thiz*/,
+                                                  jlong   handle)
+{
+    auto* h = fromHandle<NodeHandle>(handle);
+    if (!h || !h->node()) return 0L;
+    lxb_dom_node_t* next = h->node()->next;
+    if (!next) return 0L;
+    try {
+        return toHandle(new NodeHandle(next, h->doc()));
+    } catch (const std::bad_alloc&) {
+        return 0L;
+    }
+}
+
+extern "C" JNIEXPORT jlong JNICALL
+Java_io_github_lexbor_1jni_Node_nativeParent(JNIEnv* /*env*/,
+                                             jobject /*thiz*/,
+                                             jlong   handle)
+{
+    auto* h = fromHandle<NodeHandle>(handle);
+    if (!h || !h->node()) return 0L;
+    lxb_dom_node_t* parent = h->node()->parent;
+    if (!parent) return 0L;
+    try {
+        return toHandle(new NodeHandle(parent, h->doc()));
+    } catch (const std::bad_alloc&) {
+        return 0L;
+    }
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_io_github_lexbor_1jni_Node_nativeRemove(JNIEnv* /*env*/,
+                                             jobject /*thiz*/,
+                                             jlong   handle)
+{
+    auto* h = fromHandle<NodeHandle>(handle);
+    if (h && h->node()) {
+        lxb_dom_node_remove(h->node());
+    }
+}
+
 extern "C" JNIEXPORT void JNICALL
 Java_io_github_lexbor_1jni_Node_nativeDestroy(JNIEnv* /*env*/,
                                               jobject /*thiz*/,

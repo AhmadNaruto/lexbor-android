@@ -1,22 +1,12 @@
-// build.gradle.kts
-//
-// Android Library build configuration for lexbor-jni.
-// Add this module as an Android library or integrate these blocks
-// into your existing app/library build.gradle.kts.
-
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    alias(libs.plugins.noveldokusha.android.library.nohilt)
 }
 
 android {
     namespace = "io.github.lexbor_jni"
-    compileSdk = 34 // Adjust based on your target SDK
+    ndkVersion = "29.0.14206865"
 
     defaultConfig {
-        minSdk = 21 // Minimal SDK targeting modern devices
-        
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
         externalNativeBuild {
@@ -35,29 +25,15 @@ android {
         }
     }
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-    }
-
     externalNativeBuild {
         cmake {
             path = file("CMakeLists.txt")
             version = "3.22.1" // Adjust to the CMake version installed in your SDK Manager
         }
     }
-
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
 }
 
 dependencies {
-    // Only standard stdlib is needed; thin wrapper has no 3rd-party JVM dependencies.
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.20")
+    implementation(libs.kotlin.stdlib)
 }
+
