@@ -46,4 +46,7 @@ std::optional<std::string> node_attr(lxb_dom_node_t* node, const char* name, siz
 // Returns true if the attribute exists (even with empty value).
 bool node_has_attr(lxb_dom_node_t* node, const char* name, size_t name_len);
 
+// Custom text extractor logic run natively for optimal performance.
+std::string node_extract_clean_text(lxb_dom_node_t* node);
+
 } // namespace lexbor_jni

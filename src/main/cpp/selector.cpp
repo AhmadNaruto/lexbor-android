@@ -148,4 +148,113 @@ bool node_has_attr(lxb_dom_node_t* node, const char* name, size_t name_len) {
                name_len) != nullptr;
 }
 
+// ── Native Text Extractor ───────────────────────────────────────────────────
+
+#include <algorithm>
+#include <cctype>
+
+static inline std::string trim_str(const std::string& s) {
+    auto start = s.begin();
+    while (start != s.end() && std::isspace(static_cast<unsigned char>(*start))) {
+        start++;
+    }
+    if (start == s.end()) return {};
+    auto end = s.end();
+    do {
+        end--;
+    } while (end > start && std::isspace(static_cast<unsigned char>(*end)));
+    return std::string(start, end + 1);
+}
+
+static std::string declare_img_entry(lxb_dom_node_t* node) {
+    std::string src;
+    size_t val_len = 0;
+    lxb_dom_attr_t* attr = lxb_dom_element_attr_by_name(
+        lxb_dom_interface_element(node),
+        reinterpret_cast<const lxb_char_t*>("src"), 3);
+    if (attr) {
+        const lxb_char_t* val = lxb_dom_attr_value(attr, &val_len);
+        if (val) {
+            src = std::string(reinterpret_cast<const char*>(val), val_len);
+        }
+    }
+    return "\n\n<img src=\"" + src + "\" yrel=\"1.45\" />\n\n";
+}
+
+static void p_traverse(lxb_dom_node_t* node, std::string& out) {
+    lxb_dom_node_t* child = node->first_child;
+    while (child) {
+        if (child->type == LXB_DOM_NODE_TYPE_ELEMENT) {
+            if (child->local_name == LXB_TAG_BR) {
+                out += "\n";
+            } else if (child->local_name == LXB_TAG_IMG) {
+                out += declare_img_entry(child);
+            } else {
+                p_traverse(child, out);
+            }
+        } else if (child->type == LXB_DOM_NODE_TYPE_TEXT) {
+            out += node_text_content(child);
+        }
+        child = child->next;
+    }
+}
+
+static std::string get_p_traverse(lxb_dom_node_t* node) {
+    std::string out;
+    p_traverse(node, out);
+    std::string trimmed = trim_str(out);
+    if (trimmed.empty()) return "";
+    return trimmed + "\n\n";
+}
+
+static void node_text_traverse(lxb_dom_node_t* node, std::string& out) {
+    lxb_dom_node_t* child = node->first_child;
+    while (child) {
+        if (child->type == LXB_DOM_NODE_TYPE_ELEMENT) {
+            if (child->local_name == LXB_TAG_P) {
+                out += get_p_traverse(child);
+            } else if (child->local_name == LXB_TAG_BR) {
+                out += "\n";
+            } else if (child->local_name == LXB_TAG_HR) {
+                out += "\n\n";
+            } else if (child->local_name == LXB_TAG_IMG) {
+                out += declare_img_entry(child);
+            } else {
+                node_text_traverse(child, out);
+            }
+        } else if (child->type == LXB_DOM_NODE_TYPE_TEXT) {
+            std::string txt = trim_str(node_text_content(child));
+            if (!txt.empty()) {
+                out += txt + "\n\n";
+            }
+        }
+        child = child->next;
+    }
+}
+
+std::string node_extract_clean_text(lxb_dom_node_t* node) {
+    if (!node) return "";
+    std::string out;
+    lxb_dom_node_t* child = node->first_child;
+    while (child) {
+        if (child->type == LXB_DOM_NODE_TYPE_ELEMENT) {
+            if (child->local_name == LXB_TAG_P) {
+                out += get_p_traverse(child);
+            } else if (child->local_name == LXB_TAG_BR) {
+                out += "\n";
+            } else if (child->local_name == LXB_TAG_HR) {
+                out += "\n\n";
+            } else if (child->local_name == LXB_TAG_IMG) {
+                out += declare_img_entry(child);
+            } else {
+                node_text_traverse(child, out);
+            }
+        } else if (child->type == LXB_DOM_NODE_TYPE_TEXT) {
+            out += trim_str(node_text_content(child));
+        }
+        child = child->next;
+    }
+    return out;
+}
+
 } // namespace lexbor_jni

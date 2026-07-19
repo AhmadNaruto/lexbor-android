@@ -162,6 +162,14 @@ class Node internal constructor(private var nativeHandle: Long) : AutoCloseable 
             return if (nextHandle != 0L) Node(nextHandle) else null
         }
 
+    /** Returns the first child node, or null if none. */
+    val firstChild: Node?
+        get() {
+            checkOpen()
+            val childHandle = nativeFirstChild(nativeHandle)
+            return if (childHandle != 0L) Node(childHandle) else null
+        }
+
     /** Returns the parent node, or null if none. */
     val parent: Node?
         get() {
@@ -169,6 +177,26 @@ class Node internal constructor(private var nativeHandle: Long) : AutoCloseable 
             val parentHandle = nativeParent(nativeHandle)
             return if (parentHandle != 0L) Node(parentHandle) else null
         }
+
+    /** Returns the node type code (1 = element, 3 = text, etc.). */
+    val nodeType: Int
+        get() {
+            checkOpen()
+            return nativeNodeType(nativeHandle)
+        }
+
+    /** Returns the node name (e.g. tag name, "#text"). */
+    val nodeName: String
+        get() {
+            checkOpen()
+            return nativeNodeName(nativeHandle)
+        }
+
+    /** Extracts readable text recursively with custom novel layout rules. */
+    fun extractCleanText(): String {
+        checkOpen()
+        return nativeExtractCleanText(nativeHandle)
+    }
 
     /** Removes this node from its parent DOM tree. */
     fun remove() {
@@ -185,7 +213,11 @@ class Node internal constructor(private var nativeHandle: Long) : AutoCloseable 
     private external fun nativeQuery(handle: Long, css: String): Long
     private external fun nativeQueryFirst(handle: Long, css: String): Long
     private external fun nativeNextSibling(handle: Long): Long
+    private external fun nativeFirstChild(handle: Long): Long
     private external fun nativeParent(handle: Long): Long
+    private external fun nativeNodeType(handle: Long): Int
+    private external fun nativeNodeName(handle: Long): String
+    private external fun nativeExtractCleanText(handle: Long): String
     private external fun nativeRemove(handle: Long): Unit
     private external fun nativeDestroy(handle: Long)
 }

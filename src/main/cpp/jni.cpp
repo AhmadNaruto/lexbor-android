@@ -450,6 +450,21 @@ Java_io_github_lexbor_1jni_Node_nativeNextSibling(JNIEnv* /*env*/,
         return 0L;
     }
 }
+extern "C" JNIEXPORT jlong JNICALL
+Java_io_github_lexbor_1jni_Node_nativeFirstChild(JNIEnv* /*env*/,
+                                                 jobject /*thiz*/,
+                                                 jlong   handle)
+{
+    auto* h = fromHandle<NodeHandle>(handle);
+    if (!h || !h->node()) return 0L;
+    lxb_dom_node_t* child = h->node()->first_child;
+    if (!child) return 0L;
+    try {
+        return toHandle(new NodeHandle(child, h->doc()));
+    } catch (const std::bad_alloc&) {
+        return 0L;
+    }
+}
 
 extern "C" JNIEXPORT jlong JNICALL
 Java_io_github_lexbor_1jni_Node_nativeParent(JNIEnv* /*env*/,
@@ -465,6 +480,53 @@ Java_io_github_lexbor_1jni_Node_nativeParent(JNIEnv* /*env*/,
     } catch (const std::bad_alloc&) {
         return 0L;
     }
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_io_github_lexbor_1jni_Node_nativeNodeType(JNIEnv* /*env*/,
+                                               jobject /*thiz*/,
+                                               jlong   handle)
+{
+    auto* h = fromHandle<NodeHandle>(handle);
+    if (!h || !h->node()) return 0;
+    return static_cast<jint>(h->node()->type);
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_io_github_lexbor_1jni_Node_nativeNodeName(JNIEnv* env,
+                                               jobject /*thiz*/,
+                                               jlong   handle)
+{
+    auto* h = fromHandle<NodeHandle>(handle);
+    if (!h || !h->node()) return env->NewStringUTF("");
+    
+    if (h->node()->type == LXB_DOM_NODE_TYPE_ELEMENT) {
+        size_t len = 0;
+        const lxb_char_t* name = lxb_tag_name_by_id(h->node()->local_name, &len);
+        if (name && len > 0) {
+            std::string result(reinterpret_cast<const char*>(name), len);
+            return env->NewStringUTF(result.c_str());
+        }
+    } else if (h->node()->type == LXB_DOM_NODE_TYPE_TEXT) {
+        return env->NewStringUTF("#text");
+    } else if (h->node()->type == LXB_DOM_NODE_TYPE_COMMENT) {
+        return env->NewStringUTF("#comment");
+    } else if (h->node()->type == LXB_DOM_NODE_TYPE_DOCUMENT) {
+        return env->NewStringUTF("#document");
+    }
+    return env->NewStringUTF("");
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_io_github_lexbor_1jni_Node_nativeExtractCleanText(JNIEnv* env,
+                                                       jobject /*thiz*/,
+                                                       jlong   handle)
+{
+    auto* h = fromHandle<NodeHandle>(handle);
+    if (!h || !h->node()) return env->NewStringUTF("");
+
+    std::string text = node_extract_clean_text(h->node());
+    return env->NewStringUTF(text.c_str());
 }
 
 extern "C" JNIEXPORT void JNICALL
