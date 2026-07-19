@@ -102,6 +102,7 @@ doc.close()
 
 Keamanan platform Android diperketat dengan implementasi penanganan error mutakhir di layer JNI:
 *   **Exception Safety**: Semua pemanggilan fungsi native dibungkus oleh blok `try-catch`. Alokasi memori C++ yang gagal (`std::bad_alloc`) atau kesalahan parsing internal diubah secara otomatis menjadi `java.lang.RuntimeException` di sisi Java/Kotlin untuk mencegah *application crashes*.
+*   **Callback Exception Safety**: Callback C++ (seperti `str_append_cb` saat serialisasi) dibungkus dengan blok `try-catch` sehingga exception (seperti OOM/`std::bad_alloc`) tidak melintasi batas frame stack C Lexbor yang dapat memicu *Undefined Behavior*. Exception diubah menjadi status error Lexbor (`LXB_STATUS_ERROR_MEMORY_ALLOCATION`).
 *   **Pencegahan Memory Leak**: Pelepasan string JNI (`ReleaseStringUTFChars`) dijamin berjalan secara defensif meskipun terjadi error di tengah-tengah pemrosesan query CSS.
 
 ---
@@ -160,18 +161,20 @@ fun scrapePrice(html: String): String? {
     }
 }
 
-// Contoh 2: Scraping daftar data (nested query)
+// Contoh 2: Scraping daftar data dengan forEachNode (rekomendasi, otomatis menutup node)
 fun scrapeProductCards(html: String): List<String> {
-    return HtmlDocument.parse(html).use { doc ->
+    val results = mutableListOf<String>()
+    HtmlDocument.parse(html).use { doc ->
         doc.query("div.product-card").use { cards ->
-            cards.mapNotNull { card ->
-                card.use {
-                    val name = card.queryFirst("h2.title")?.use { it.text }
-                    val price = card.queryFirst("span.price")?.use { it.text }
-                    if (name != null && price != null) "$name: $price" else null
+            cards.forEachNode { card ->
+                val name = card.queryFirst("h2.title")?.use { it.text }
+                val price = card.queryFirst("span.price")?.use { it.text }
+                if (name != null && price != null) {
+                    results.add("$name: $price")
                 }
             }
         }
     }
+    return results
 }
 ```

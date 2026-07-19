@@ -327,6 +327,7 @@ fun isEmpty(): Boolean
 fun isNotEmpty(): Boolean
 operator fun get(index: Int): Node
 override fun iterator(): Iterator<Node>
+inline fun forEachNode(action: (Node) -> Unit)
 override fun close()
 ```
 
@@ -336,6 +337,7 @@ override fun close()
 | `isNotEmpty()` | `Boolean` | Returns `true` if the list contains at least one element. |
 | `get(index)` | `Node` | Returns the node at the given index. Throws `IndexOutOfBoundsException` for out-of-range indices. |
 | `iterator()` | `Iterator<Node>` | Returns an iterator over all nodes. Each node from the iterator must be individually closed. |
+| `forEachNode(action)` | `Unit` | Iterates over all nodes, calls `action(node)`, and automatically closes each node upon block completion. |
 | `close()` | `Unit` | Frees the native `NodeListHandle` and its result vector. DOM nodes themselves are **not** freed. **Idempotent.** |
 
 > `destroy()` is a deprecated alias for `close()`.
@@ -429,23 +431,36 @@ fun getArticleHtml(html: String): Pair<String, String>? {
 
 ### Safe Resource Management
 
-All objects implement `AutoCloseable`. Use `use {}` at every level to guarantee cleanup:
+All objects implement `AutoCloseable`. Use `use {}` at every level to guarantee cleanup. For loops over lists, use the extension helper `forEachNode` which automatically handles closing each element:
 
 ```kotlin
 // Recommended pattern — resources freed in correct LIFO order
 HtmlDocument.parse(html).use { doc ->               // doc freed last
     doc.query("ul.menu > li").use { items ->         // list freed second
+        items.forEachNode { item ->                  // each item is closed automatically!
+            item.queryFirst("a")?.use { a ->
+                println("${a.text} -> ${a.attr("href")}")
+            }
+        }
+    }
+}
+// All native memory released ✓
+```
+
+Or using standard kotlin loop (requires manual `use` inside loop):
+
+```kotlin
+HtmlDocument.parse(html).use { doc ->
+    doc.query("ul.menu > li").use { items ->
         for (item in items) {
-            item.use {                                // each node freed immediately
-                val link = item.queryFirst("a")
-                link?.use { a ->
+            item.use {
+                item.queryFirst("a")?.use { a ->
                     println("${a.text} -> ${a.attr("href")}")
                 }
             }
         }
     }
 }
-// All native memory released ✓
 ```
 
 Manual management (equivalent):
