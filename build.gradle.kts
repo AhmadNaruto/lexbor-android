@@ -2,7 +2,9 @@ plugins {
     alias(libs.plugins.noveldokusha.android.library.nohilt)
 }
 
-android {
+import com.android.build.api.dsl.LibraryExtension
+
+extensions.configure<LibraryExtension> {
     namespace = "io.github.lexbor_jni"
     ndkVersion = "29.0.14206865"
 
@@ -30,6 +32,12 @@ android {
             path = file("CMakeLists.txt")
             version = "3.22.1" // Adjust to the CMake version installed in your SDK Manager
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
     }
 }
 

@@ -451,14 +451,14 @@ target_compile_definitions(lexbor_static PRIVATE
 # Build: JNI shared library
 # =============================================================================
 add_library(lexbor_jni SHARED
-    ${CMAKE_CURRENT_SOURCE_DIR}/cpp/document.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/cpp/selector.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/cpp/jni.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/document.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/selector.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/jni.cpp
 )
 
 target_include_directories(lexbor_jni PRIVATE
     ${LEXBOR_ROOT}/source   # for lexbor/html/html.h etc.
-    ${CMAKE_CURRENT_SOURCE_DIR}/cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp
 )
 
 target_compile_options(lexbor_jni PRIVATE
