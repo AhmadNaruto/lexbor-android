@@ -128,7 +128,8 @@ DocumentHandle* DocumentHandle::parse(const char* html, size_t len) {
         lxb_html_document_destroy(doc);
         return nullptr;
     }
-    lxb_selectors_opt_set(sels, LXB_SELECTORS_OPT_MATCH_FIRST);
+    // Leave options at LXB_SELECTORS_OPT_DEFAULT; queryFromNode sets the
+    // correct option per-call based on the first_only parameter.
 
     return new DocumentHandle(doc, parser, css_memory, css_sels, sels);
 }
@@ -165,11 +166,22 @@ bool DocumentHandle::queryFromNode(lxb_dom_node_t*               root,
                                 css_len);
     if (!list) return false;
 
+    // Set the correct walk option for this call:
+    //   queryFirst → MATCH_FIRST so Lexbor stops the tree walk after the first
+    //                selector-list match (complements the LXB_STATUS_STOP from
+    //                find_cb for an additional early-exit path).
+    //   query      → DEFAULT so Lexbor continues walking the full tree.
+    lxb_selectors_opt_set(sels_,
+        first_only ? LXB_SELECTORS_OPT_MATCH_FIRST
+                   : LXB_SELECTORS_OPT_DEFAULT);
+
     FindCtx ctx{&out, first_only};
     lxb_selectors_find(sels_, root, list, find_cb, &ctx);
 
-    // Instead of destroying memory, we clean/reset the reusable memory pool
-    // so it can be used for the next query.
+    // Restore to DEFAULT so the next call always starts from a clean state.
+    lxb_selectors_opt_set(sels_, LXB_SELECTORS_OPT_DEFAULT);
+
+    // Reset the reusable CSS memory pool (backing buffer stays allocated).
     lxb_css_memory_clean(css_memory_);
 
     return true;
